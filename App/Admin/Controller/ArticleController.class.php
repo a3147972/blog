@@ -12,14 +12,14 @@ class ArticleController extends BaseController
      */
     public function _before_add()
     {
-        $catalog_list = D('Catalog')->_list(array() , 0 , 10 , '' , 'id asc,sort desc');
+        $catalog_list = D('Catalog')->_list(array(), 0, 10, '', 'id asc,sort desc');
         $catalog_list = ArrayHelper::tree($catalog_list);
 
         $last_id = D('Article')->getLastId();
         $id = $last_id + 1;
 
         $this->assign('catalog_list', $catalog_list);
-        $this->assign('id', $id);   //为文章分配id
+        $this->assign('id', $id); //为文章分配id
     }
 
     /**
@@ -115,8 +115,9 @@ class ArticleController extends BaseController
         } else {
             $tag_id = $TagModel->insert($tag_name);
 
-            if ($tag_id == false) {     //新增tag失败则输出错误
-                $this->error ($TagModel->getError());
+            if ($tag_id == false) {
+                //新增tag失败则输出错误
+                $this->error($TagModel->getError());
             }
         }
 

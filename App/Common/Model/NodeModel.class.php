@@ -6,7 +6,7 @@ use Common\Model\BaseModel;
 class NodeModel extends BaseModel
 {
     protected $tableName = 'node';
-    protected $selectFields = 'id,name,module,function,is_show,is_enable,sort';
+    protected $selectFields = 'id,pid,name,module,function,is_show,is_enable,sort';
     protected $_validate = array(
         array('name', 'require', '请输入节点名称'),
         array('module', 'require', '请输入module'),
@@ -28,8 +28,9 @@ class NodeModel extends BaseModel
      */
     public function getListByGroupId($group_id)
     {
+        $node_map['is_enable'] = 1;
         if ($group_id == 1) {   //超级管理员组拥有所有权限
-            $node_list = $this->_list();
+            $node_list = $this->_list($map);
             return $node_list;
         }
 
@@ -40,7 +41,6 @@ class NodeModel extends BaseModel
         $node_id = array_column($node_list, 'node_id');
 
         $node_map['id'] = array('in', $node_id);
-
         $node_list = $this->_list($map);
 
         return $node_list;

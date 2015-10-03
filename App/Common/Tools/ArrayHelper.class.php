@@ -58,7 +58,7 @@ class ArrayHelper
      * @param  integer $level    层级
      * @return array            处理后的数据
      */
-    public static function tree($array, $pid_name = 'pid', $id_name = 'id' , $pid = 0, $level = 0)
+    public static function tree($array, $pid_name = 'pid', $id_name = 'id', $pid = 0, $level = 0)
     {
         static $list = array();
 
@@ -66,9 +66,46 @@ class ArrayHelper
             if ($_v[$pid_name] == $pid) {
                 $list[$_k] = $_v;
                 $list[$_k]['_level'] = $level;
-                self::tree($array, $pid_name, $id_name, $_v[$id_name] , $level+1);
+                self::tree($array, $pid_name, $id_name, $_v[$id_name], $level + 1);
             }
         }
         return $list;
+    }
+
+    /**
+     * 两级分类,子类归到child_list里
+     * @method child_tree
+     * @param  array     $array    要处理的数组
+     * @param  string     $pid_name 父键名称
+     * @param  string     $id_name  主键名称
+     * @param  integer    $pid      父键开始
+     * @return array               处理后的数据
+     */
+    public static function child_tree($array, $pid_name = 'pid', $id_name = 'id')
+    {
+        static $list = array();
+
+        foreach ($array as $_k => $_v) {
+            if ($_v[$pid_name] == 0) {
+                $list[$_v[$id_name]] = $_v;
+            } else {
+                $list[$_v[$pid_name]]['child_list'][] = $_v;
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * 把数组变为数字key
+     * @method array_number_key
+     * @param  array           $array 要处理的数组
+     * @return array                  处理后的数组
+     */
+    public static function array_number_key($array)
+    {
+        $keys = range(0, count($array));
+        $array = array_combine($keys, array_values($array));
+
+        return $array;
     }
 }

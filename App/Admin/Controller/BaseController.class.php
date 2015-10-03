@@ -1,14 +1,27 @@
 <?php
 namespace Admin\Controller;
 
-use Think\Controller;
+use Common\Tools\ArrayHelper;
 use Common\Tools\Page;
+use Think\Controller;
 
 class BaseController extends Controller
 {
     public function _initialize()
     {
+        $uid = session('uid');
+        if (!$uid) {
+            redirect(U('Login/login'));
+        }
 
+        //判断是否拥有权限
+        if (!in_array(CONTROLLER_NAME . '/' . ACTION_NAME, session('node_list'))) {
+            redirect(U('Index/index'));
+        }
+
+        $menu_list = $this->menu();
+
+        $this->assign('menu_list', $menu_list);
     }
 
     /**
@@ -27,14 +40,14 @@ class BaseController extends Controller
     public function index()
     {
         $map = method_exists($this, '_filter') ? $this->_filter() : array();
-        $page = (int)I('page', 0);
-        $page_size = (int)I('page_size', 0);
+        $page = (int) I('page', 0);
+        $page_size = (int) I('page_size', 0);
 
         $model = D(CONTROLLER_NAME);
 
         $list = $model->_list($map, $page, $page_size, '', ''); //数据列表
-        $count = $model->_count($map);      //总条数
-        $page_list = $this->_page($count, $page, $page_size);   //分页数组
+        $count = $model->_count($map); //总条数
+        $page_list = $this->_page($count, $page, $page_size); //分页数组
 
         $this->assign('list', $list);
         $this->assign('count', $count);
@@ -56,7 +69,7 @@ class BaseController extends Controller
         $p = new Page($count, $page, $page_size, $page_number);
         $page_list = $p->show();
 
-        $url = empty($url) ? CONTROLLER_NAME .'/'. MODULE_NAME : $url;
+        $url = empty($url) ? CONTROLLER_NAME . '/' . MODULE_NAME : $url;
         $get = I('get.');
 
         foreach ($page_list as $_k => $_v) {
@@ -110,13 +123,13 @@ class BaseController extends Controller
 
         $pk = $model->getPk();
 
-        $map[$pk] = (int)I($pk);
+        $map[$pk] = (int) I($pk);
 
         $info = $model->_get($map);
 
         if ($info) {
             $this->assign('vo', $info);
-            $this->display('add');      //使用新增模板
+            $this->display('add'); //使用新增模板
         } else {
             $this->error('非法请求');
         }
@@ -150,5 +163,27 @@ class BaseController extends Controller
     public function _empty()
     {
         redirect(U('Index/index'));
+    }
+
+    /**
+     * 获取后台左侧菜单列表
+     * @method menu
+     * @return [type] [description]
+     */
+    private function menu()
+    {
+        $gid = session('gid');
+
+        $node_list = D('Node')->getListByGroupId($gid);
+
+        $node_id = array_column($node_list, 'id');
+        $node_map['id'] = array('in', $node_id);
+        $node_map['is_show'] = 1;
+
+        $node_list = D('Node')->_list($node_map, 0, 0, '', 'id asc,sort desc');
+
+        $node_list = ArrayHelper::child_tree($node_list);
+
+        return $node_list;
     }
 }

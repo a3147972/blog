@@ -9,6 +9,19 @@ class AdminModel extends BaseModel
     protected $tableName = 'admin';
     protected $selectFields = 'id,username,password,salt,nickname,group_id';
 
+    //自动验证
+    protected $_validate = array(
+        array('username', 'require', '请输入用户名'),
+        array('password', 'require', '请输入密码', 1, 'regex', 1),
+    );
+
+    //自动完成
+    protected $_auto = array(
+        array('ctime', 'now', 1, 'function'),
+        array('mtime', 'now', 3, 'function'),
+        array('password','',2,'ignore')
+    );
+
     /**
      * 登录
      * @method login

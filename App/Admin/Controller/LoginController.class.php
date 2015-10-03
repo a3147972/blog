@@ -38,39 +38,45 @@ class LoginController extends Controller
      */
     public function checkLogin()
     {
-        if (IS_POST) {
-            $username = I('post.username');
-            $password = I('post.password');
-            $verify = I('post.verify');
-
-            if (empty($username)) {
-                $this->error('请输入用户名');
-            }
-            if (empty($password)) {
-                $this->error('请输入密码');
-            }
-
-            $model = D('Admin');
-            $info = $model->login($username, $password);
-
-            if ($info) {
-                session('uid', $info['id']);
-                session('nickname', $info['nickname']);
-                session('gid', $info['group_id']);
-
-                //获取权限列表
-                $node_list = D('Node')->getListByGroupId($info['group_id']);
-                session('node_list', $node_list);
-
-                D('LoginLog')->write($username); //写入登录日志
-                $redirect = I('post.redirect', U('Index/index'));
-                redirect($redirect); //跳转
-            } else {
-                $this->error($model->getError());
-            }
-        } else {
-            D('LoginLog')->write($username, 0, $password); //写入登录日志
+        if (!IS_POST) {
             $this->error('非法请求');
+        }
+
+        $username = I('post.username');
+        $password = I('post.password');
+
+        if (empty($username)) {
+            $this->error('请输入用户名');
+        }
+        if (empty($password)) {
+            $this->error('请输入密码');
+        }
+
+        $model = D('Admin');
+        $info = $model->login($username, $password);
+
+        if ($info) {
+            session('uid', $info['id']);
+            session('nickname', $info['nickname']);
+            session('gid', $info['group_id']);
+
+            //获取权限列表
+            $node_list = D('Node')->getListByGroupId($info['group_id']);
+            $module_list = array_column($node_list, 'module');
+            $function_list = array_column($node_list, 'function');
+
+            $node_list = array();
+            foreach ($module_list as $_k => $_v) {
+                $node_list[$_k] = isset($function_list[$_k]) ? $_v . '/' . $function_list[$_k] : $_v . '/index';
+            }
+            session('node_list', $node_list);
+
+            D('LoginLog')->write($username); //写入登录日志
+            $redirect = I('post.redirect', U('Index/index'));
+
+            $this->success('登录成功', $redirect);
+        } else {
+            $this->error($model->getError());
         }
     }
 
