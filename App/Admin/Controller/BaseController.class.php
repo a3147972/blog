@@ -45,6 +45,9 @@ class BaseController extends Controller
 
         $model = D(CONTROLLER_NAME);
 
+        if (method_exists($model, 'lists')) {
+            $list = $model->lists()
+        }
         $list = $model->_list($map, $page, $page_size, '', ''); //数据列表
         $count = $model->_count($map); //总条数
         $page_list = $this->_page($count, $page, $page_size); //分页数组
